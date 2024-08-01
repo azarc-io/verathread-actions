@@ -4,6 +4,9 @@ inputs:
   token:
     description: "Github Token"
     required: true
+  codacy-token:
+    description: "Codacy Token"
+    required: true
   jira-base-url:
     description: "Jira Base URL"
     required: true
@@ -48,7 +51,21 @@ runs:
       shell: bash
       run: |
         task setup:ci
+    - name: Set ENV variables
+      shell: bash
+      run: |
+        echo "REPO_NAME=${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}" >> $GITHUB_ENV
+        echo "Repository name is $REPO_NAME"
     - name: "Test"
       shell: bash
       run: |
         task test:unit:ci
+    - name: "Submit Coverage"
+      shell: bash
+      if: inputs.codacy-token != ''
+      run: bash <(curl -Ls https://coverage.codacy.com/get.sh) report --api-token ${{ inputs.codacy-token }} --force-coverage-parser go -r bin/unit.cover.out
+      env:
+        CODACY_API_TOKEN: ${{ inputs.codacy-token }}
+        CODACY_ORGANIZATION_PROVIDER: gh
+        CODACY_USERNAME: azarc-io
+        CODACY_PROJECT_NAME: $REPO_NAME
