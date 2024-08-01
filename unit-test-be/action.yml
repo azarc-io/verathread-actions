@@ -19,12 +19,12 @@ runs:
   steps:
     - name: "Checkout"
       uses: actions/checkout@v4
-    - name: "Checkout Latest Actions"
-      uses: actions/checkout@v4
-      with:
-        repository: azarc-io/verathread-actions
-        path: .github/actions
-        ref: initial
+#    - name: "Checkout Latest Actions"
+#      uses: actions/checkout@v4
+#      with:
+#        repository: azarc-io/verathread-actions
+#        path: .github/actions
+#        ref: initial
     - name: "Login To Jira"
       uses: azarc-io/gajira-login@master
       if: inputs.jira-api-token != '' && inputs.jira-user-email != '' && inputs.jira-base-url != ''
