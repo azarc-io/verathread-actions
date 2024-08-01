@@ -20,7 +20,7 @@ runs:
     - name: "Checkout"
       uses: actions/checkout@v4
     - name: "Configure Environment"
-      uses: ../configuration
+      uses: ./../configuration
       id: configure
       with:
         jira-base-url: ${{ inputs.jira-base-url }}
