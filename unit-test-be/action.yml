@@ -19,14 +19,13 @@ runs:
   steps:
     - name: "Checkout"
       uses: actions/checkout@v4
-    - name: "Configure Environment"
-      uses: ./../configuration
-      id: configure
-      with:
-        jira-base-url: ${{ inputs.jira-base-url }}
-        jira-user-email: ${{ inputs.jira-user-email }}
-        jira-api-token: ${{ inputs.jira-api-token }}
-        use-sudo: true
+    - name: "Login To Jira"
+      uses: azarc-io/gajira-login@master
+      if: inputs.jira-api-token != '' && inputs.jira-user-email != '' && inputs.jira-base-url != ''
+      env:
+        JIRA_BASE_URL: ${{ inputs.jira-base-url }}
+        JIRA_USER_EMAIL: ${{ inputs.jira-user-email }}
+        JIRA_API_TOKEN: ${{ inputs.jira-api-token }}
     - name: "Setup Go"
       uses: actions/setup-go@v5
       with:
