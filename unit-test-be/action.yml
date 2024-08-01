@@ -51,11 +51,11 @@ runs:
       shell: bash
       run: |
         task setup:ci
-    - name: Set ENV variables
-      shell: bash
-      run: |
-        echo "REPO_NAME=${GITHUB_REPOSITORY#$GITHUB_REPOSITORY_OWNER/}" >> $GITHUB_ENV
-        echo "Repository name is $REPO_NAME"
+    - name: "Get repository name"
+      id: repo-name
+      uses: MariachiBear/get-repo-name-action@v1.1.0
+      with:
+        with-owner: 'false'
     - name: "Test"
       shell: bash
       run: |
@@ -68,4 +68,4 @@ runs:
         CODACY_API_TOKEN: ${{ inputs.codacy-token }}
         CODACY_ORGANIZATION_PROVIDER: gh
         CODACY_USERNAME: azarc-io
-        CODACY_PROJECT_NAME: $REPO_NAME
+        CODACY_PROJECT_NAME: ${{ steps.repo-name.outputs.repository-name }}
