@@ -20,7 +20,7 @@ runs:
     - name: "Checkout"
       uses: actions/checkout@v4
     - name: "Configure Environment"
-      uses: ./.github/actions/configuration
+      uses: ../configuration
       id: configure
       with:
         jira-base-url: ${{ inputs.jira-base-url }}
@@ -45,8 +45,9 @@ runs:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
         password: ${{ inputs.token }}
-#    - name: "Fix git URL"
-#      run: git config --global url."https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/".insteadOf "https://github.com/"
+    - name: "Fix git URL"
+      shell: bash
+      run: git config --global url."https://x-access-token:${{ inputs.token }}@github.com/".insteadOf "https://github.com/"
 #    - name: "Install Build Deps"
 #      uses: awalsh128/cache-apt-pkgs-action@latest
 #      with:
