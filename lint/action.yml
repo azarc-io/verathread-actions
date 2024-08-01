@@ -10,8 +10,6 @@ inputs:
 outputs: {}
 runs:
   using: "composite"
-  env:
-    GOPRIVATE: "github.com/azarc-io"
   steps:
     - name: "Checkout"
       uses: actions/checkout@v4.1.7
