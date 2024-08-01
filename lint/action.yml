@@ -16,8 +16,8 @@ runs:
     - name: "Setup Go"
       uses: actions/setup-go@v5
       with:
-        cache-dependency-path: ./go.sum
-        go-version-file: ./go.mod
+        cache-dependency-path: ${{ github.workspace }}/go.sum
+        go-version-file: ${{ github.workspace }}/go.mod
     - name: "Fix git URL"
       shell: bash
       run: git config --global url."https://x-access-token:${{ inputs.token }}@github.com/".insteadOf "https://github.com/"
