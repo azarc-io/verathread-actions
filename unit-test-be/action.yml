@@ -35,35 +35,14 @@ runs:
       uses: arduino/setup-task@v2
       with:
         version: 3.x
-    - name: "Setup BuildX"
-      uses: ./.github/actions/buildx
-    - name: "GHCR Login"
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.repository_owner }}
-        password: ${{ inputs.token }}
     - name: "Fix git URL"
       shell: bash
       run: git config --global url."https://x-access-token:${{ inputs.token }}@github.com/".insteadOf "https://github.com/"
-    - name: "Install Build Deps"
-      uses: awalsh128/cache-apt-pkgs-action@latest
-      with:
-        packages: build-essential g++ clang-12
-        version: 1.0
-    - name: "Calculate Variables"
-      id: vars
-      run: echo "sha_short=`echo ${{ github.event.pull_request.head.sha }} | cut -c1-8`" >> $GITHUB_OUTPUT
-    - name: "Build"
-      run: task build:be:multi
-    - name: "Build Docker"
-      run: task docker:build:multi
-      env:
-        DOCKER_REGISTRY: ghcr.io/azarc-io/verathread-gateway
-        DOCKER_IMAGE: gateway-be
-        DOCKER_VERSION: ${{ steps.configure.outputs.issue }}-${{ github.run_number }}-${{ steps.vars.outputs.sha_short }}
-    - name: "Upload Artifacts"
-      uses: actions/upload-artifact@v4
-      with:
-        name: gateway-be
-        path: bin/linux-*
+    - name: "Setup"
+      shell: bash
+      run: |
+        task setup:ci
+    - name: "Test"
+      shell: bash
+      run: |
+        task test:unit:ci
