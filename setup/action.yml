@@ -143,6 +143,6 @@ runs:
         echo "repo-name=`echo ${{ steps.repo-name.outputs.repository-name }}`" >> $GITHUB_OUTPUT
         echo "issue=`echo ${{ steps.issue.outputs.issue }}`" >> $GITHUB_OUTPUT
         
-        echo "Issue: ${{ steps.issue.outputs.issue }}" >> $GITHUB_SUMMARY
-        echo "Repo Name: ${{ steps.repo-name.outputs.repository-name }}" >> $GITHUB_SUMMARY
-        echo "Short SHA: ${{ github.event.pull_request.head.sha }}" >> $GITHUB_SUMMARY
+        echo "Issue: ${{ steps.issue.outputs.issue }}" >> $GITHUB_STEP_SUMMARY
+        echo "Repo Name: ${{ steps.repo-name.outputs.repository-name }}" >> $GITHUB_STEP_SUMMARY
+        echo "Short SHA: ${{ github.event.pull_request.head.sha }}" >> $GITHUB_STEP_SUMMARY
