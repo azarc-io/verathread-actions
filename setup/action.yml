@@ -23,6 +23,14 @@ inputs:
     required: false
     description: "Install Go"
     default: 'false'
+  gotestsum:
+    required: false
+    description: "Install Go Test tool"
+    default: 'false'
+  gotestsum-version:
+    required: false
+    description: "gotestsum version"
+    default: 'v1.12.0'
   node:
     required: false
     description: "Install Node"
@@ -82,6 +90,11 @@ runs:
       with:
         cache-dependency-path: go.sum
         go-version-file: go.mod
+    - name: "Setup gotestsum"
+      uses: autero1/action-gotestsum@v2
+      if: inputs.gotestsum != 'false'
+      with:
+        gotestsum_version: ${{ inputs.gotestsum-version }}
     - name: "Setup"
       shell: bash
       run: |
