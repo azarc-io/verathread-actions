@@ -91,7 +91,7 @@ runs:
         cache-dependency-path: go.sum
         go-version-file: go.mod
     - name: "Setup gotestsum"
-      uses: autero1/action-gotestsum@v2.0.0
+      uses: gertd/action-gotestsum@v3.0.0
       if: inputs.gotestsum != 'false'
       with:
         gotestsum_version: ${{ inputs.gotestsum-version }}
