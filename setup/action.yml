@@ -54,7 +54,7 @@ outputs:
     value: ${{ steps.vars.outputs.issue }}
   repo-name:
     description: "Name of the repository"
-    value: ${{ steps.vars.outputs.repository-name }}
+    value: ${{ steps.vars.outputs.repo-name }}
   short-sha:
     description: "Short commit sha"
     value: ${{ steps.vars.outputs.sha_short }}
