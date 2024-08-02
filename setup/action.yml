@@ -51,11 +51,11 @@ inputs:
 outputs:
   issue:
     description: "The Jira Issue"
-    value: ${{ steps.issue.outputs.issue }}
-  repoName:
+    value: ${{ steps.vars.outputs.issue }}
+  repo-name:
     description: "Name of the repository"
-    value: ${{ steps.repo-name.outputs.repository-name }}
-  shortSha:
+    value: ${{ steps.vars.outputs.repository-name }}
+  short-sha:
     description: "Short commit sha"
     value: ${{ steps.vars.outputs.sha_short }}
 
@@ -138,4 +138,7 @@ runs:
     - name: "Calculate Variables"
       id: vars
       shell: bash
-      run: echo "sha_short=`echo ${{ github.event.pull_request.head.sha }} | cut -c1-8`" >> $GITHUB_OUTPUT
+      run: |
+        echo "sha_short=`echo ${{ github.event.pull_request.head.sha }} | cut -c1-8`" >> $GITHUB_OUTPUT
+        echo "repo-name=`echo ${{ steps.repo-name.outputs.repository-name }}`" >> $GITHUB_OUTPUT
+        echo "issue=`echo ${{ steps.issue.outputs.issue }}`" >> $GITHUB_OUTPUT

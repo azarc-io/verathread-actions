@@ -1,10 +1,10 @@
 name: 'Build Go'
 description: 'Build Go'
 inputs:
-  shortSha:
+  short-sha:
     description: "Short Commit SHA"
     required: true
-  artifactName:
+  artifact-name:
     description: "Repository Name"
     required: true
   issue:
@@ -21,11 +21,11 @@ runs:
       shell: bash
       run: task docker:build:multi
       env:
-        DOCKER_REGISTRY: ghcr.io/azarc-io/${{ inputs.artifactName }}
-        DOCKER_IMAGE: ${{ inputs.artifactName }}-be
-        DOCKER_VERSION: ${{ inputs.issue }}-${{ github.run_number }}-${{ inputs.shortSha }}
+        DOCKER_REGISTRY: ghcr.io/azarc-io/${{ inputs.artifact-name }}
+        DOCKER_IMAGE: ${{ inputs.artifact-name }}-be
+        DOCKER_VERSION: ${{ inputs.issue }}-${{ github.run_number }}-${{ inputs.short-sha }}
     - name: "Upload Artifacts"
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.artifactName }}-be
+        name: ${{ inputs.artifact-name }}-be
         path: bin/linux-*
