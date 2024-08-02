@@ -1,0 +1,55 @@
+name: 'Build Go'
+description: 'Build Go'
+inputs:
+  short-sha:
+    description: "Short Commit SHA"
+    required: true
+  artifact-name:
+    description: "Repository Name"
+    required: true
+  issue:
+    description: "Issue Number"
+    required: true
+  dockerfile:
+    description: "Path to the Dockerfile to use"
+    required: false
+    default: "deployment/docker/web/Dockerfile"
+  web-dist-path:
+    description: "Path to the web dist folder"
+    required: false
+    default: "cmd/web/dist"
+  env-mode:
+    description: "The env mode to set for the build"
+    required: false
+    default: "qa1"
+outputs: {}
+runs:
+  using: "composite"
+  steps:
+    - name: "Yarn Install"
+      shell: bash
+      run: task ci:fe:install
+    - name: "Lint"
+      shell: bash
+      run: task lint:fe
+    - name: "Test"
+      shell: bash
+      run: task test:fe
+    - name: "Build"
+      shell: bash
+      run: task build:fe
+      env:
+        ENV_MODE: ${{ inputs.env-mode }}
+    - name: "Build Docker"
+      shell: bash
+      run: task docker:build:multi
+      env:
+        DOCKER_REGISTRY: ghcr.io/azarc-io/${{ inputs.artifact-name }}
+        DOCKER_IMAGE: ${{ inputs.artifact-name }}-fe
+        DOCKER_VERSION: ${{ inputs.issue }}-${{ github.run_number }}-${{ inputs.short-sha }}
+        DOCKERFILE: ${{ inputs.dockerfile }}
+    - name: "Upload Artifacts"
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}-fe
+        path: ${{ inputs.web-dist-path }}

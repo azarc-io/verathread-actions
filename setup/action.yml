@@ -106,6 +106,15 @@ runs:
       with:
         cache-dependency-path: go.sum
         go-version-file: go.mod
+    - name: "Setup Node"
+      uses: actions/setup-node@v4
+      if: inputs.node != 'false'
+      with:
+        node-version: 'v22'
+        cache: 'yarn'
+        cache-dependency-path: cmd/web/yarn.lock
+      env:
+        FORCE_COLOR: 0
     - name: "Setup gotestsum"
       uses: gertd/action-gotestsum@v3.0.0
       if: inputs.gotestsum != 'false'
