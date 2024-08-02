@@ -86,3 +86,8 @@ runs:
       shell: bash
       run: |
         task setup:ci
+    - name: "Get repository name"
+      id: repo-name
+      uses: MariachiBear/get-repo-name-action@v1.1.0
+      with:
+        with-owner: 'false'
