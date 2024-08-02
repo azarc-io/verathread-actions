@@ -10,7 +10,7 @@ runs:
   steps:
     - name: "Get repository name"
       id: repo-name
-      uses: MariachiBear/get-repo-name-action@v1.1.0
+      uses: MariachiBear/get-repo-name-action@v1.3.0
       with:
         with-owner: 'false'
     - name: "Test"
