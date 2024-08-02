@@ -11,14 +11,6 @@ outputs: {}
 runs:
   using: "composite"
   steps:
-    - name: "Checkout"
-      uses: actions/checkout@v4.1.7
-    - name: "Checkout Latest Actions"
-      uses: actions/checkout@v4
-      with:
-        repository: azarc-io/verathread-actions
-        path: .github/actions
-        ref: initial
     - name: "Setup Go"
       uses: actions/setup-go@v5
       with:

@@ -1,0 +1,88 @@
+name: 'Setup'
+description: 'Checkout & Configure Requirements'
+inputs:
+  token:
+    description: "Github Token"
+    required: true
+  dockerhub-user:
+    required: false
+    description: "The username used to authenticate with Dockerhub"
+  dockerhub-pass:
+    required: false
+    description: "The password used to authenticate with Dockerhub"
+  jira-base-url:
+    required: false
+    description: "The base url for Jira"
+  jira-user-email:
+    required: false
+    description: "The Jira user email address"
+  jira-api-token:
+    required: false
+    description: "The Jira API token"
+  go:
+    required: false
+    description: "Install Go"
+    default: 'false'
+  node:
+    required: false
+    description: "Install Node"
+    default: 'false'
+
+outputs:
+  issue:
+    description: "The Jira Issue"
+    value: ${{ steps.issue.outputs.issue }}
+  repoName:
+    description: "Name of the repository"
+    value: ${{ steps.repo-name.outputs.repository-name }}
+runs:
+  using: "composite"
+  steps:
+    - name: "Checkout"
+      uses: actions/checkout@v4.1.7
+    - name: "Checkout Latest Actions"
+      uses: actions/checkout@v4
+      with:
+        repository: azarc-io/verathread-actions
+        path: .github/actions
+        ref: initial
+    - name: "Fix git URL"
+      shell: bash
+      run: git config --global url."https://x-access-token:${{ inputs.token }}@github.com/".insteadOf "https://github.com/"
+    - name: "Docker Registry Login"
+      uses: docker/login-action@v3.2.0
+      if: inputs.registry == '' && inputs.dockerhub-user != '' && inputs.dockerhub-pass != ''
+      with:
+        registry: ${{ inputs.registry }}
+        username: ${{ inputs.registry-user }}
+        password: ${{ inputs.registry-pass }}
+    - name: "Login To Jira"
+      uses: azarc-io/gajira-login@master
+      if: inputs.jira-api-token != '' && inputs.jira-user-email != '' && inputs.jira-base-url != ''
+      env:
+        JIRA_BASE_URL: ${{ inputs.jira-base-url }}
+        JIRA_USER_EMAIL: ${{ inputs.jira-user-email }}
+        JIRA_API_TOKEN: ${{ inputs.jira-api-token }}
+    - name: "Get branch name"
+      id: branch-name
+      uses: tj-actions/branch-names@v6
+    - name: Find Issue
+      uses: azarc-io/gajira-find-issue-key@master
+      id: issue
+      if: inputs.jira-api-token != '' && inputs.jira-user-email != '' && inputs.jira-base-url != ''
+      with:
+        string: ${{steps.branch-name.outputs.head_ref_branch}}
+    - name: "Setup Task"
+      uses: arduino/setup-task@v2
+      with:
+        version: 3.x
+    - name: "Setup Go"
+      uses: actions/setup-go@v5
+      if: inputs.go != 'false'
+      with:
+        cache-dependency-path: go.sum
+        go-version-file: go.mod
+    - name: "Setup"
+      shell: bash
+      run: |
+        task setup:ci

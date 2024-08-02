@@ -1,56 +1,13 @@
 name: 'Unit Test Backend'
 description: 'Unit Test Backend'
 inputs:
-  token:
-    description: "Github Token"
-    required: true
   codacy-token:
     description: "Codacy Token"
-    required: true
-  jira-base-url:
-    description: "Jira Base URL"
-    required: true
-  jira-user-email:
-    description: "Jira User Email"
-    required: true
-  jira-api-token:
-    description: "Jira Token"
     required: true
 outputs: {}
 runs:
   using: "composite"
   steps:
-    - name: "Checkout"
-      uses: actions/checkout@v4
-    - name: "Checkout Latest Actions"
-      uses: actions/checkout@v4
-      with:
-        repository: azarc-io/verathread-actions
-        path: .github/actions
-        ref: initial
-    - name: "Login To Jira"
-      uses: azarc-io/gajira-login@master
-      if: inputs.jira-api-token != '' && inputs.jira-user-email != '' && inputs.jira-base-url != ''
-      env:
-        JIRA_BASE_URL: ${{ inputs.jira-base-url }}
-        JIRA_USER_EMAIL: ${{ inputs.jira-user-email }}
-        JIRA_API_TOKEN: ${{ inputs.jira-api-token }}
-    - name: "Setup Go"
-      uses: actions/setup-go@v5
-      with:
-        cache-dependency-path: go.sum
-        go-version-file: go.mod
-    - name: "Setup Task"
-      uses: arduino/setup-task@v2
-      with:
-        version: 3.x
-    - name: "Fix git URL"
-      shell: bash
-      run: git config --global url."https://x-access-token:${{ inputs.token }}@github.com/".insteadOf "https://github.com/"
-    - name: "Setup"
-      shell: bash
-      run: |
-        task setup:ci
     - name: "Get repository name"
       id: repo-name
       uses: MariachiBear/get-repo-name-action@v1.1.0
