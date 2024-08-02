@@ -1,0 +1,28 @@
+name: 'Build Go'
+description: 'Build Go'
+inputs:
+  short-sha:
+    description: "Short Commit SHA"
+    required: true
+  artifact-name:
+    description: "Repository Name"
+    required: true
+outputs: {}
+runs:
+  using: "composite"
+  steps:
+    - name: "Build"
+      shell: bash
+      run: task build:be:multi
+    - name: "Build Docker"
+      shell: bash
+      run: task docker:build:multi
+      env:
+        DOCKER_REGISTRY: ghcr.io/azarc-io/${{ inputs.artifact-name }}
+        DOCKER_IMAGE: ${{ inputs.artifact-name }}-be
+        DOCKER_VERSION: ${{ steps.configure.outputs.issue }}-${{ github.run_number }}-${{ inputs.short-sha }}
+    - name: "Upload Artifacts"
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}-be
+        path: bin/linux-*

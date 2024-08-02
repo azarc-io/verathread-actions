@@ -35,14 +35,30 @@ inputs:
     required: false
     description: "Install Node"
     default: 'false'
+  buildx:
+    required: false
+    description: "Install Docker BuildX"
+    default: 'false'
+  ghcr:
+    required: false
+    description: "Login to GHCR"
+    default: 'false'
+  essentials:
+    required: false
+    description: "Install build essentials"
+    default: 'false'
 
 outputs:
   issue:
     description: "The Jira Issue"
     value: ${{ steps.issue.outputs.issue }}
-  repoName:
+  repo-name:
     description: "Name of the repository"
     value: ${{ steps.repo-name.outputs.repository-name }}
+  short-sha:
+    description: "Short commit sha"
+    value: ${{ steps.vars.outputs.sha_short }}
+
 runs:
   using: "composite"
   steps:
@@ -104,3 +120,22 @@ runs:
       uses: MariachiBear/get-repo-name-action@v1.3.0
       with:
         with-owner: 'false'
+    - name: "Setup BuildX"
+      uses: ./.github/actions/buildx
+      if: inputs.buildx != 'false'
+    - name: "GHCR Login"
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ inputs.token }}
+    - name: "Install Build Deps"
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      if: inputs.essentials != 'false'
+      with:
+        packages: build-essential g++ clang-12
+        version: 1.0
+    - name: "Calculate Variables"
+      id: vars
+      shell: bash
+      run: echo "sha_short=`echo ${{ github.event.pull_request.head.sha }} | cut -c1-8`" >> $GITHUB_OUTPUT
