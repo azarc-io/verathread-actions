@@ -52,10 +52,10 @@ outputs:
   issue:
     description: "The Jira Issue"
     value: ${{ steps.issue.outputs.issue }}
-  repo-name:
+  repoName:
     description: "Name of the repository"
     value: ${{ steps.repo-name.outputs.repository-name }}
-  short-sha:
+  shortSha:
     description: "Short commit sha"
     value: ${{ steps.vars.outputs.sha_short }}
 
