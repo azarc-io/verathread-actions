@@ -7,6 +7,9 @@ inputs:
   artifact-name:
     description: "Repository Name"
     required: true
+  issue:
+    description: "Issue Number"
+    required: true
 outputs: {}
 runs:
   using: "composite"
@@ -20,7 +23,7 @@ runs:
       env:
         DOCKER_REGISTRY: ghcr.io/azarc-io/${{ inputs.artifact-name }}
         DOCKER_IMAGE: ${{ inputs.artifact-name }}-be
-        DOCKER_VERSION: ${{ steps.configure.outputs.issue }}-${{ github.run_number }}-${{ inputs.short-sha }}
+        DOCKER_VERSION: ${{ inputs.issue }}-${{ github.run_number }}-${{ inputs.short-sha }}
     - name: "Upload Artifacts"
       uses: actions/upload-artifact@v4
       with:
