@@ -133,8 +133,8 @@ runs:
       if: inputs.helm != 'false' || inputs.kubectl != 'false'
       uses: azure/setup-kubectl@v4
     - name: "Set Kube Config"
+      if: inputs.kube-config != ''
       shell: bash
-      id: vars
       run: |
         mkdir -p ~/.kube && echo "${{ inputs.kube-config }}" | base64 -d > ~/.kube/config
         chmod go-r ~/.kube/config
