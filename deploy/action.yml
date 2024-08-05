@@ -4,12 +4,6 @@ inputs:
   ghcr-token:
     description: "Github Registry Token"
     required: true
-  app-tag:
-    description: "Backend Docker Tag"
-    required: true
-  web-tag:
-    description: "Frontend Docker Tag"
-    required: true
   issue:
     description: "Issue Number"
     required: true
