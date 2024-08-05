@@ -55,6 +55,9 @@ inputs:
     required: false
     description: "Install Kube CLI"
     default: 'false'
+  kube-config:
+    description: "K8S Config"
+    required: false
 
 outputs:
   issue:
@@ -129,6 +132,12 @@ runs:
     - name: "Setup Kubectl"
       if: inputs.helm != 'false' || inputs.kubectl != 'false'
       uses: azure/setup-kubectl@v4
+    - name: "Set Kube Config"
+      shell: bash
+      id: vars
+      run: |
+        mkdir -p ~/.kube && echo "${{ inputs.kube-config }}" | base64 -d > ~/.kube/config
+        chmod go-r ~/.kube/config
     - name: "Setup gotestsum"
       uses: gertd/action-gotestsum@v3.0.0
       if: inputs.gotestsum != 'false'

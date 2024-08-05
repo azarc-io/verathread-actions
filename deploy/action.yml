@@ -16,19 +16,10 @@ inputs:
   install-task:
     description: "Installation task name"
     required: true
-  kube-config:
-    description: "K8S Config"
-    required: true
 outputs: {}
 runs:
   using: "composite"
   steps:
-    - name: "Set Kube Config"
-      shell: bash
-      id: vars
-      run: |
-        mkdir -p ~/.kube && echo "${{ inputs.kube-config }}" | base64 -d > ~/.kube/config
-        chmod go-r ~/.kube/config
     - name: "Create Docker Login Secret"
       shell: bash
       run: |
