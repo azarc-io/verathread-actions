@@ -47,6 +47,14 @@ inputs:
     required: false
     description: "Install build essentials"
     default: 'false'
+  helm:
+    required: false
+    description: "Install helm"
+    default: 'false'
+  kubectl:
+    required: false
+    description: "Install Kube CLI"
+    default: 'false'
 
 outputs:
   issue:
@@ -115,6 +123,12 @@ runs:
         cache-dependency-path: cmd/web/yarn.lock
       env:
         FORCE_COLOR: 0
+    - name: "Setup Helm"
+      if: inputs.helm != 'false'
+      uses: azure/setup-helm@v4.2.0
+    - name: "Setup Kubectl"
+      if: inputs.helm != 'false' || inputs.kubectl != 'false'
+      uses: azure/setup-kubectl@v4
     - name: "Setup gotestsum"
       uses: gertd/action-gotestsum@v3.0.0
       if: inputs.gotestsum != 'false'
