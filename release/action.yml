@@ -52,6 +52,8 @@ runs:
     - name: "Update Version Files"
       shell: bash
       run: task ci:update:version:files
+      env:
+        $TAG: ${{ steps.tag.outputs.tag }}
     - name: "Commit Changes"
       shell: bash
       run: git add . && git commit -m "Version updated to '${{ steps.tag.outputs.tag }}'"
