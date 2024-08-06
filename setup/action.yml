@@ -4,6 +4,12 @@ inputs:
   token:
     description: "Github Token"
     required: true
+  pat-token:
+    description: "Github Token"
+    required: true
+  checkout-ref:
+    description: "Git ref to checkout, requires pat token be set as well"
+    required: false
   dockerhub-user:
     required: false
     description: "The username used to authenticate with Dockerhub"
@@ -58,6 +64,10 @@ inputs:
   kube-config:
     description: "K8S Config"
     required: false
+  yq:
+    required: false
+    description: "Install yq"
+    default: 'false'
 
 outputs:
   issue:
@@ -74,7 +84,15 @@ runs:
   using: "composite"
   steps:
     - name: "Checkout"
+      if: inputs.checkout-ref == ''
       uses: actions/checkout@v4.1.7
+    - name: "Checkout Ref"
+      uses: actions/checkout@v4
+      if: inputs.checkout-ref != '' && inputs.pat-token != ''
+      with:
+        fetch-depth: 0
+        token: ${{ inputs.pat-token }}
+        ref: ${{ inputs.checkout-ref }}
     - name: "Checkout Latest Actions"
       uses: actions/checkout@v4
       with:
@@ -111,6 +129,11 @@ runs:
       uses: arduino/setup-task@v2
       with:
         version: 3.x
+    - name: "🏗 Setup yq"
+      uses: frenck/action-setup-yq@v1
+      if: inputs.yq != 'false'
+      with:
+            version: 4.25.2
     - name: "Setup Go"
       uses: actions/setup-go@v5
       if: inputs.go != 'false'
@@ -160,7 +183,7 @@ runs:
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
-        password: ${{ inputs.token }}
+        password: ${{ inputs.pat-token }}
     - name: "Install Build Deps"
       uses: awalsh128/cache-apt-pkgs-action@latest
       if: inputs.essentials != 'false'

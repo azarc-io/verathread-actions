@@ -1,0 +1,34 @@
+name: 'Cleanup'
+description: 'Cleanup'
+inputs:
+  token:
+    description: "Github Token"
+    required: true
+  issue:
+    description: "Issue Number"
+    required: true
+  artifact-name:
+    description: "Repository Name"
+    required: true
+outputs: {}
+runs:
+  using: "composite"
+  steps:
+    - name: "Clean Up BE Artifacts"
+      uses: dataaxiom/ghcr-cleanup-action@v1
+      with:
+        tags: ${{ inputs.issue }}-*
+        exclude-tags: 'v*,latest'
+        token: ${{ inputs.token }}
+        owner: azarc-io
+        package: ${{ inputs.artifact-name }}/${{ inputs.artifact-name }}-be
+        log-level: debug
+    - name: "Clean Up FE Artifacts"
+      uses: dataaxiom/ghcr-cleanup-action@v1
+      with:
+        tags: ${{ inputs.issue }}-*
+        exclude-tags: 'v*,latest'
+        token: ${{ inputs.token }}
+        owner: azarc-io
+        package: ${{ inputs.artifact-name }}/${{ inputs.artifact-name }}-fe
+        log-level: debug
