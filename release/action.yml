@@ -92,9 +92,6 @@ runs:
       run: task ${{ inputs.install-task }}
       env:
         NAMESPACE: ${{ inputs.namespace }}
-    - name: "Push Git Tag - Including Chart and Not Squashed"
-      shell: bash
-      run: git tag ${{ steps.tag.outputs.tag }}-chart && git push origin tag ${{ steps.tag.outputs.tag }}-chart
     - name: "Download FE Artifact"
       uses: actions/download-artifact@v4
       with:
@@ -118,6 +115,9 @@ runs:
         number: ${{ github.event.pull_request.number }}
         method: squash
         repo: azarc-io/${{ inputs.repo-name }}
+    - name: "Push Git Tag - Including Chart and Not Squashed"
+      shell: bash
+      run: git tag ${{ steps.tag.outputs.tag }}-chart && git push origin tag ${{ steps.tag.outputs.tag }}-chart
     - name: "Push Git Tag - After Squash"
       shell: bash
       run: |
