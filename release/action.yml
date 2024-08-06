@@ -130,7 +130,7 @@ runs:
       with:
         tag_name: ${{ steps.tag.outputs.tag }}
         generate_release_notes: true
-        repository: azarc-io/verathread-gateway
+        repository: azarc-io/${{ inputs.repo-name }}
         token: ${{ inputs.pat-token }}
         files: |
           bin/be/${{ inputs.repo-name }}-linux-amd64
