@@ -22,7 +22,7 @@ inputs:
   install-task:
     description: "Installation task name"
     required: true
-  artifact-name:
+  repo-name:
     description: "Repository Name"
     required: true
 outputs: {}
@@ -61,18 +61,18 @@ runs:
       shell: bash
       run: task docker:re-tag
       env:
-        DOCKER_IMAGE: ${{ inputs.artifact-name }}-be
+        DOCKER_IMAGE: ${{ inputs.repo-name }}-be
         SOURCE_VERSION: ${{ inputs.issue }}-${{ github.run_number }}-${{ inputs.short-sha }}
         TARGET_VERSION: ${{ steps.tag.outputs.tag }}
-        DOCKER_REGISTRY: ghcr.io/azarc-io/${{ inputs.artifact-name }}
+        DOCKER_REGISTRY: ghcr.io/azarc-io/${{ inputs.repo-name }}
     - name: "Docker Re-Tag BE"
       shell: bash
       run: task docker:re-tag
       env:
-        DOCKER_IMAGE: ${{ inputs.artifact-name }}-fe
+        DOCKER_IMAGE: ${{ inputs.repo-name }}-fe
         SOURCE_VERSION: ${{ inputs.issue }}-${{ github.run_number }}-${{ inputs.short-sha }}
         TARGET_VERSION: ${{ steps.tag.outputs.tag }}
-        DOCKER_REGISTRY: ghcr.io/azarc-io/${{ inputs.artifact-name }}
+        DOCKER_REGISTRY: ghcr.io/azarc-io/${{ inputs.repo-name }}
     - name: "Create Docker Login Secret"
       shell: bash
       run: |
@@ -98,26 +98,26 @@ runs:
     - name: "Download FE Artifact"
       uses: actions/download-artifact@v4
       with:
-        name: ${{ inputs.artifact-name }}-fe
+        name: ${{ inputs.repo-name }}-fe
         path: bin/fe
     - name: "Download BE Artifact"
       uses: actions/download-artifact@v4
       with:
-        name: ${{ inputs.artifact-name }}-be
+        name: ${{ inputs.repo-name }}-be
         path: bin/be
     - name: "Generate Packages"
       shell: bash
       run: |
-        cp bin/be/linux-amd64/${{ inputs.artifact-name }} bin/be/${{ inputs.artifact-name }}-linux-amd64
-        cp bin/be/linux-arm64/${{ inputs.artifact-name }} bin/be/${{ inputs.artifact-name }}-linux-arm64
-        zip -r bin/${{ inputs.artifact-name }}-fe.zip bin/fe
+        cp bin/be/linux-amd64/${{ inputs.repo-name }} bin/be/${{ inputs.repo-name }}-linux-amd64
+        cp bin/be/linux-arm64/${{ inputs.repo-name }} bin/be/${{ inputs.repo-name }}-linux-arm64
+        zip -r bin/${{ inputs.repo-name }}-fe.zip bin/fe
     - name: "Merge Pull Request"
       uses: juliangruber/merge-pull-request-action@v1
       with:
         github-token: ${{ inputs.pat-token }}
         number: ${{ github.event.pull_request.number }}
         method: squash
-        repo: azarc-io/verathread-gateway
+        repo: azarc-io/${{ inputs.repo-name }}
     - name: "Push Git Tag - After Squash"
       shell: bash
       run: |
@@ -133,6 +133,6 @@ runs:
         repository: azarc-io/verathread-gateway
         token: ${{ inputs.pat-token }}
         files: |
-          bin/be/${{ inputs.artifact-name }}-linux-amd64
-          bin/be/${{ inputs.artifact-name }}-linux-arm64
-          bin/${{ inputs.artifact-name }}-fe.zip
+          bin/be/${{ inputs.repo-name }}-linux-amd64
+          bin/be/${{ inputs.repo-name }}-linux-arm64
+          bin/${{ inputs.repo-name }}-fe.zip
