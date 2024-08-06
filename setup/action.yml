@@ -101,7 +101,7 @@ runs:
         ref: initial
     - name: "Fix git URL"
       shell: bash
-      run: git config --global url."https://x-access-token:${{ inputs.token }}@github.com/".insteadOf "https://github.com/"
+      run: git config --global url."https://x-access-token:${{ inputs.pat-token }}@github.com/".insteadOf "https://github.com/"
     - name: "Dockerhub Login"
       uses: docker/login-action@v3.3.0
       if: inputs.dockerhub-user != '' && inputs.dockerhub-pass != ''
