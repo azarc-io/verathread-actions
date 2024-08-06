@@ -199,7 +199,7 @@ runs:
         echo "issue=`echo ${{ steps.issue.outputs.issue }}`" >> $GITHUB_OUTPUT
         
         echo "Repo Name: ${{ steps.repo-name.outputs.repository-name }}" >> $GITHUB_STEP_SUMMARY
-        echo "Short SHA: ${{ github.event.pull_request.head.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "Short SHA: `echo ${{ github.event.pull_request.head.sha }} | cut -c1-8`" >> $GITHUB_STEP_SUMMARY
         
         if [ -n "${{ steps.issue.outputs.issue }}" ]; then
           echo "Issue: ${{ steps.issue.outputs.issue }}" >> $GITHUB_STEP_SUMMARY

@@ -114,7 +114,7 @@ runs:
     - name: "Merge Pull Request"
       uses: juliangruber/merge-pull-request-action@v1
       with:
-        github-token: ${{ secrets.PAT_TOKEN }}
+        github-token: ${{ inputs.pat-token }}
         number: ${{ github.event.pull_request.number }}
         method: squash
         repo: azarc-io/verathread-gateway
@@ -131,7 +131,7 @@ runs:
         tag_name: ${{ steps.tag.outputs.tag }}
         generate_release_notes: true
         repository: azarc-io/verathread-gateway
-        token: ${{ secrets.PAT_TOKEN }}
+        token: ${{ inputs.pat-token }}
         files: |
           bin/be/${{ inputs.artifact-name }}-linux-amd64
           bin/be/${{ inputs.artifact-name }}-linux-arm64
