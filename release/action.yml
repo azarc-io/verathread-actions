@@ -89,8 +89,6 @@ runs:
       shell: bash
       run: task ${{ inputs.install-task }}
       env:
-        APP_IMAGE_TAG: ${{ inputs.issue }}-${{ github.run_number }}-${{ inputs.short-sha }}
-        WEB_IMAGE_TAG: ${{ inputs.issue }}-${{ github.run_number }}-${{ inputs.short-sha }}
         NAMESPACE: ${{ inputs.namespace }}
     - name: "Push Git Tag - Including Chart and Not Squashed"
       shell: bash
