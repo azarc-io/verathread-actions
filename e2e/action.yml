@@ -1,0 +1,26 @@
+name: 'Build Go'
+description: 'Build Go'
+inputs:
+  token:
+    description: "Github Token"
+    required: true
+  short-sha:
+    description: "Short Commit SHA"
+    required: true
+  artifact-name:
+    description: "Repository Name"
+    required: true
+  issue:
+    description: "Issue Number"
+    required: true
+outputs: {}
+runs:
+  using: "composite"
+  steps:
+    - name: "Checkout"
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ inputs.token }}
+        repository: azarc-io/verathread-dev-toolkit
+        path: toolkit

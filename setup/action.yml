@@ -1,0 +1,205 @@
+name: 'Setup'
+description: 'Checkout & Configure Requirements'
+inputs:
+  token:
+    description: "Github Token"
+    required: true
+  pat-token:
+    description: "Github Token"
+    required: true
+  checkout-ref:
+    description: "Git ref to checkout, requires pat token be set as well"
+    required: false
+  dockerhub-user:
+    required: false
+    description: "The username used to authenticate with Dockerhub"
+  dockerhub-pass:
+    required: false
+    description: "The password used to authenticate with Dockerhub"
+  jira-base-url:
+    required: false
+    description: "The base url for Jira"
+  jira-user-email:
+    required: false
+    description: "The Jira user email address"
+  jira-api-token:
+    required: false
+    description: "The Jira API token"
+  go:
+    required: false
+    description: "Install Go"
+    default: 'false'
+  gotestsum:
+    required: false
+    description: "Install Go Test tool"
+    default: 'false'
+  gotestsum-version:
+    required: false
+    description: "gotestsum version"
+    default: 'v1.12.0'
+  node:
+    required: false
+    description: "Install Node"
+    default: 'false'
+  buildx:
+    required: false
+    description: "Install Docker BuildX"
+    default: 'false'
+  ghcr:
+    required: false
+    description: "Login to GHCR"
+    default: 'false'
+  essentials:
+    required: false
+    description: "Install build essentials"
+    default: 'false'
+  helm:
+    required: false
+    description: "Install helm"
+    default: 'false'
+  kubectl:
+    required: false
+    description: "Install Kube CLI"
+    default: 'false'
+  kube-config:
+    description: "K8S Config"
+    required: false
+  yq:
+    required: false
+    description: "Install yq"
+    default: 'false'
+
+outputs:
+  issue:
+    description: "The Jira Issue"
+    value: ${{ steps.vars.outputs.issue }}
+  repo-name:
+    description: "Name of the repository"
+    value: ${{ steps.vars.outputs.repo-name }}
+  short-sha:
+    description: "Short commit sha"
+    value: ${{ steps.vars.outputs.sha_short }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Checkout"
+      if: inputs.checkout-ref == ''
+      uses: actions/checkout@v4.1.7
+    - name: "Checkout Ref"
+      uses: actions/checkout@v4
+      if: inputs.checkout-ref != '' && inputs.pat-token != ''
+      with:
+        fetch-depth: 0
+        token: ${{ inputs.pat-token }}
+        ref: ${{ inputs.checkout-ref }}
+    - name: "Checkout Latest Actions"
+      uses: actions/checkout@v4
+      with:
+        repository: azarc-io/verathread-actions
+        path: .github/actions
+        ref: initial
+    - name: "Fix git URL"
+      shell: bash
+      run: git config --global url."https://x-access-token:${{ inputs.pat-token }}@github.com/".insteadOf "https://github.com/"
+    - name: "Dockerhub Login"
+      uses: docker/login-action@v3.3.0
+      if: inputs.dockerhub-user != '' && inputs.dockerhub-pass != ''
+      with:
+        username: ${{ inputs.dockerhub-user }}
+        password: ${{ inputs.dockerhub-pass }}
+    - name: "Login To Jira"
+      uses: azarc-io/gajira-login@master
+      if: inputs.jira-api-token != '' && inputs.jira-user-email != '' && inputs.jira-base-url != ''
+      env:
+        JIRA_BASE_URL: ${{ inputs.jira-base-url }}
+        JIRA_USER_EMAIL: ${{ inputs.jira-user-email }}
+        JIRA_API_TOKEN: ${{ inputs.jira-api-token }}
+    - name: "Get branch name"
+      id: branch-name
+      uses: tj-actions/branch-names@v6
+    - name: Find Issue
+      uses: azarc-io/gajira-find-issue-key@master
+      id: issue
+      if: inputs.jira-api-token != '' && inputs.jira-user-email != '' && inputs.jira-base-url != ''
+      with:
+        string: ${{steps.branch-name.outputs.head_ref_branch}}
+    - name: "Setup Task"
+      uses: arduino/setup-task@v2
+      with:
+        version: 3.x
+    - name: "🏗 Setup yq"
+      uses: frenck/action-setup-yq@v1
+      if: inputs.yq != 'false'
+      with:
+            version: 4.25.2
+    - name: "Setup Go"
+      uses: actions/setup-go@v5
+      if: inputs.go != 'false'
+      with:
+        cache-dependency-path: go.sum
+        go-version-file: go.mod
+    - name: "Setup Node"
+      uses: actions/setup-node@v4
+      if: inputs.node != 'false'
+      with:
+        node-version: 'v22'
+        cache: 'yarn'
+        cache-dependency-path: cmd/web/yarn.lock
+      env:
+        FORCE_COLOR: 0
+    - name: "Setup Helm"
+      if: inputs.helm != 'false'
+      uses: azure/setup-helm@v4.2.0
+    - name: "Setup Kubectl"
+      if: inputs.helm != 'false' || inputs.kubectl != 'false'
+      uses: azure/setup-kubectl@v4
+    - name: "Set Kube Config"
+      if: inputs.kube-config != ''
+      shell: bash
+      run: |
+        mkdir -p ~/.kube && echo "${{ inputs.kube-config }}" | base64 -d > ~/.kube/config
+        chmod go-r ~/.kube/config
+    - name: "Setup gotestsum"
+      uses: gertd/action-gotestsum@v3.0.0
+      if: inputs.gotestsum != 'false'
+      with:
+        gotestsum_version: ${{ inputs.gotestsum-version }}
+    - name: "Setup"
+      shell: bash
+      run: |
+        task setup:ci
+    - name: "Get repository name"
+      id: repo-name
+      uses: MariachiBear/get-repo-name-action@v1.3.0
+      with:
+        with-owner: 'false'
+    - name: "Setup BuildX"
+      uses: ./.github/actions/buildx
+      if: inputs.buildx != 'false'
+    - name: "GHCR Login"
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ inputs.pat-token }}
+    - name: "Install Build Deps"
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      if: inputs.essentials != 'false'
+      with:
+        packages: build-essential g++ clang-12
+        version: 1.0
+    - name: "Calculate Variables"
+      id: vars
+      shell: bash
+      run: |
+        echo "sha_short=`echo ${{ github.event.pull_request.head.sha }} | cut -c1-8`" >> $GITHUB_OUTPUT
+        echo "repo-name=`echo ${{ steps.repo-name.outputs.repository-name }}`" >> $GITHUB_OUTPUT
+        echo "issue=`echo ${{ steps.issue.outputs.issue }}`" >> $GITHUB_OUTPUT
+        
+        echo "Repo Name: ${{ steps.repo-name.outputs.repository-name }}" >> $GITHUB_STEP_SUMMARY
+        echo "Short SHA: `echo ${{ github.event.pull_request.head.sha }} | cut -c1-8`" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -n "${{ steps.issue.outputs.issue }}" ]; then
+          echo "Issue: ${{ steps.issue.outputs.issue }}" >> $GITHUB_STEP_SUMMARY
+        fi

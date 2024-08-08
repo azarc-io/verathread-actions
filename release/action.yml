@@ -1,0 +1,138 @@
+name: 'Build Go'
+description: 'Build Go'
+inputs:
+  token:
+    description: "Github Token"
+    required: true
+  pat-token:
+    description: "Github Token"
+    required: true
+  ghcr-token:
+    description: "Github Registry Token"
+    required: true
+  issue:
+    description: "Issue Number"
+    required: true
+  short-sha:
+    description: "Short Commit SHA"
+    required: true
+  namespace:
+    description: "K8S Namespace"
+    required: true
+  install-task:
+    description: "Installation task name"
+    required: true
+  repo-name:
+    description: "Repository Name"
+    required: true
+outputs: {}
+runs:
+  using: "composite"
+  steps:
+    - name: "Configure Git"
+      shell: bash
+      run: |
+        git config --global user.email "ci@azarc.io"
+        git config --global user.name "CI"
+    - name: "Update from Main Branch"
+      shell: bash
+      run: |
+        echo 'Ensure PR Branch is not behind main. This should never happen but "actions/checkout@v4" plugin does this by default.'
+        git merge origin/${{github.event.pull_request.base.ref}}
+    - name: "Create Release Tag"
+      uses: anothrNick/github-tag-action@1.67.0
+      id: tag
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+        WITH_V: true
+        DEFAULT_BUMP: minor
+        INITIAL_VERSION: 1.0.0
+        PRERELEASE: false
+        DRY_RUN: true
+    - name: "Update Version Files"
+      shell: bash
+      run: task ci:update:version:files
+      env:
+        TAG: ${{ steps.tag.outputs.tag }}
+    - name: "Commit Changes"
+      shell: bash
+      run: git add . && git commit -m "Version updated to '${{ steps.tag.outputs.tag }}'"
+    - name: "Docker Re-Tag FE"
+      shell: bash
+      run: task docker:re-tag
+      env:
+        DOCKER_IMAGE: ${{ inputs.repo-name }}-be
+        SOURCE_VERSION: ${{ inputs.issue }}-${{ github.run_number }}-${{ inputs.short-sha }}
+        TARGET_VERSION: ${{ steps.tag.outputs.tag }}
+        DOCKER_REGISTRY: ghcr.io/azarc-io/${{ inputs.repo-name }}
+    - name: "Docker Re-Tag BE"
+      shell: bash
+      run: task docker:re-tag
+      env:
+        DOCKER_IMAGE: ${{ inputs.repo-name }}-fe
+        SOURCE_VERSION: ${{ inputs.issue }}-${{ github.run_number }}-${{ inputs.short-sha }}
+        TARGET_VERSION: ${{ steps.tag.outputs.tag }}
+        DOCKER_REGISTRY: ghcr.io/azarc-io/${{ inputs.repo-name }}
+    - name: "Create Docker Login Secret"
+      shell: bash
+      run: |
+        kubectl create namespace ${{ inputs.namespace }} --dry-run=client -o yaml | kubectl apply -f -
+        kubectl create secret docker-registry ghcr-login-secret \
+          --docker-server="https://ghcr.io" \
+          --docker-username="waeljammal" \
+          --docker-password="${{ inputs.ghcr-token }}" \
+          --docker-email="wael.jammal@azarc.io" \
+          --namespace=${{ inputs.namespace }} \
+          --dry-run=client -o yaml | kubectl apply -f -
+    - name: "Deploy Dependency Charts"
+      shell: bash
+      run: task ci:install:dependency:charts
+    - name: "Deploy Chart"
+      shell: bash
+      run: task ${{ inputs.install-task }}
+      env:
+        NAMESPACE: ${{ inputs.namespace }}
+    - name: "Download FE Artifact"
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.repo-name }}-fe
+        path: bin/fe
+    - name: "Download BE Artifact"
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.repo-name }}-be
+        path: bin/be
+    - name: "Generate Packages"
+      shell: bash
+      run: |
+        cp bin/be/linux-amd64/${{ inputs.repo-name }} bin/be/${{ inputs.repo-name }}-linux-amd64
+        cp bin/be/linux-arm64/${{ inputs.repo-name }} bin/be/${{ inputs.repo-name }}-linux-arm64
+        zip -r bin/${{ inputs.repo-name }}-fe.zip bin/fe
+    - name: "Merge Pull Request"
+      uses: juliangruber/merge-pull-request-action@v1
+      with:
+        github-token: ${{ inputs.pat-token }}
+        number: ${{ github.event.pull_request.number }}
+        method: squash
+        repo: azarc-io/${{ inputs.repo-name }}
+    - name: "Push Git Tag - Including Chart and Not Squashed"
+      shell: bash
+      run: git tag ${{ steps.tag.outputs.tag }}-chart && git push origin tag ${{ steps.tag.outputs.tag }}-chart
+    - name: "Push Git Tag - After Squash"
+      shell: bash
+      run: |
+        git fetch origin
+        git checkout origin/${{github.event.pull_request.base.ref}}
+        git tag ${{ steps.tag.outputs.tag }}
+        git push origin tag ${{ steps.tag.outputs.tag }}
+    - name: "Create Release"
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.tag.outputs.tag }}
+        generate_release_notes: true
+        repository: azarc-io/${{ inputs.repo-name }}
+        token: ${{ inputs.pat-token }}
+        files: |
+          bin/be/${{ inputs.repo-name }}-linux-amd64
+          bin/be/${{ inputs.repo-name }}-linux-arm64
+          bin/${{ inputs.repo-name }}-fe.zip
