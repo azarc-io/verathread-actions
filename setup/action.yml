@@ -102,7 +102,6 @@ runs:
       with:
         repository: azarc-io/verathread-actions
         path: .github/actions
-        ref: initial
     - name: "Fix git URL"
       shell: bash
       run: git config --global url."https://x-access-token:${{ inputs.pat-token }}@github.com/".insteadOf "https://github.com/"
