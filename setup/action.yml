@@ -25,6 +25,10 @@ inputs:
   jira-api-token:
     required: false
     description: "The Jira API token"
+  node-cache-dependency-path:
+    required: false
+    description: "The files to use when calculating node caching hash"
+    default: "cmd/web/yarn.lock"
   go:
     required: false
     description: "Install Go"
@@ -145,7 +149,7 @@ runs:
       with:
         node-version: 'v22'
         cache: 'yarn'
-        cache-dependency-path: cmd/web/yarn.lock
+        cache-dependency-path: ${{ inputs.node-cache-dependency-path }}
       env:
         FORCE_COLOR: 0
     - name: "Setup Helm"
