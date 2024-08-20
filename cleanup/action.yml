@@ -21,7 +21,7 @@ runs:
         exclude-tags: 'v*,latest'
         token: ${{ inputs.token }}
         owner: azarc-io
-        package: ${{ inputs.artifact-name }}-be
+        package: ${{ inputs.artifact-name }}/${{ inputs.artifact-name }}-be
         log-level: debug
     - name: "Clean Up FE Artifacts"
       uses: dataaxiom/ghcr-cleanup-action@v1
@@ -30,5 +30,5 @@ runs:
         exclude-tags: 'v*,latest'
         token: ${{ inputs.token }}
         owner: azarc-io
-        package: ${{ inputs.artifact-name }}-fe
+        package: ${{ inputs.artifact-name }}/${{ inputs.artifact-name }}-fe
         log-level: debug
